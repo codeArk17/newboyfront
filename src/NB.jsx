@@ -61,7 +61,7 @@ const NB = ({ visibleProperties, loading = false, skeletonCount = 8 }) => {
     <section className="section">
       <Reveal>
         <div className="section-head">
-          <h2>New at Nawfth Real Estate</h2>
+          <h2>New at Nawf Real Estate</h2>
           <p>For sale and for rent in Ibadan and surroundings.</p>
           <p>
             <strong>Important:</strong> Availability can change daily; contact us before planning a visit.

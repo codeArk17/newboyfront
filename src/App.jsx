@@ -69,11 +69,11 @@ const HomePage = ({ properties, loading, error }) => {
             loading="eager"
           />
           <div className="hero-overlay">
-            <p className="hero-overline">Peter Bruin inspired layout</p>
+           
             <h1>Our Service</h1>
             <p>
-              NB Real Estate specializes in rentals, purchases, lettings, and sales in
-              Ibadan. Expect more than the usual quality and reliability.
+              Nawf Real Estate specializes in rentals, purchases, <br /> lettings, and sales in
+              Ibadan. Expect more than <br /> the usual quality and reliability.
             </p>
             <div className="hero-actions">
               <a href="#discover" className="btn btn-primary">
@@ -134,7 +134,7 @@ const HomePage = ({ properties, loading, error }) => {
         <section className="section office-block">
           <h2>Our Office</h2>
           <p>16, Islamic Shopping Mall, Mall Block D (Upstairs), Bashorun, Ibadan</p>
-          <p>nawfthome@gmail.com</p>
+          <p>nawfhome@gmail.com</p>
         </section>
       </Reveal>
     </>
