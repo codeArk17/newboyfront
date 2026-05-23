@@ -8,7 +8,7 @@ const AboutPage = () => {
       <Reveal>
         <header className="about-intro">
           <p className="about-kicker">About NawftHomes</p>
-          <h1>Thoughtful real estate inIbadan and beyond</h1>
+          <h1>Thoughtful real estate in Ibadan and beyond</h1>
           <p className="about-lead">
             We help families, professionals, and investors find homes they are proud to live in — whether
             you are renting for a season, buying your first apartment, or listing a property you have outgrown.
