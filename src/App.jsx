@@ -64,7 +64,7 @@ const HomePage = ({ properties, loading, error }) => {
           <img
             key={heroImages[heroIndex]}
             src={heroImages[heroIndex]}
-            alt="Amsterdam real estate"
+            alt="Ibadan real estate"
             className="hero-image hero-image--swap"
             loading="eager"
           />
@@ -73,7 +73,7 @@ const HomePage = ({ properties, loading, error }) => {
             <h1>Our Service</h1>
             <p>
               NB Real Estate specializes in rentals, purchases, lettings, and sales in
-              Amsterdam. Expect more than the usual quality and reliability.
+              Ibadan. Expect more than the usual quality and reliability.
             </p>
             <div className="hero-actions">
               <a href="#discover" className="btn btn-primary">
