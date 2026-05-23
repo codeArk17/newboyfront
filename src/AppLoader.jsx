@@ -4,8 +4,8 @@ const AppLoader = ({ onDone }) => {
   const [phase, setPhase] = useState('in') // 'in' | 'hold' | 'out'
 
   useEffect(() => {
-    const holdTimer = setTimeout(() => setPhase('out'), 1200)
-    const doneTimer = setTimeout(() => onDone?.(), 1750)
+    const holdTimer = setTimeout(() => setPhase('out'), 2800)
+    const doneTimer = setTimeout(() => onDone?.(), 3350)
     return () => {
       clearTimeout(holdTimer)
       clearTimeout(doneTimer)
@@ -85,7 +85,7 @@ const AppLoader = ({ onDone }) => {
           height: '100%',
           background: '#ffffff',
           borderRadius: 999,
-          animation: 'loaderBar 0.9s cubic-bezier(0.22,1,0.36,1) 0.3s forwards',
+          animation: 'loaderBar 2.4s cubic-bezier(0.4,0,0.2,1) 0.3s forwards',
           width: '0%',
         }}/>
       </div>
