@@ -472,3 +472,210 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Mobile admin overhaul ──────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .admin-page {
+    padding: 0;
+  }
+
+  /* Login card — nice centered card with breathing room */
+  .admin-login-card {
+    margin: 24px 16px;
+    padding: 24px 20px;
+    border-radius: 16px;
+    max-width: 100%;
+  }
+
+  .admin-login-card h2 {
+    font-size: 1.4rem;
+    margin: 0 0 6px;
+  }
+
+  /* Dashboard header */
+  .admin-top {
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .admin-top h1 {
+    font-size: 1.5rem;
+    margin: 4px 0;
+  }
+
+  .admin-top-actions {
+    width: 100%;
+  }
+
+  .admin-top-actions .btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* Tabs — scrollable row */
+  .admin-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 8px;
+    padding-bottom: 4px;
+    margin-bottom: 16px;
+  }
+
+  .admin-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-tab {
+    flex-shrink: 0;
+    padding: 9px 18px;
+    font-size: 0.85rem;
+  }
+
+  /* Stat cards — 2 per row */
+  .admin-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .admin-stat-card {
+    padding: 14px;
+    border-radius: 12px;
+    gap: 4px;
+  }
+
+  .admin-stat-card span {
+    font-size: 0.72rem;
+  }
+
+  .admin-stat-card strong {
+    font-size: 1.25rem;
+  }
+
+  /* Charts — stack */
+  .admin-charts {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .admin-chart-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  /* Table — card-style rows on mobile */
+  .admin-table-wrap {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    margin: 0;
+  }
+
+  .admin-table thead {
+    display: none;
+  }
+
+  .admin-table,
+  .admin-table tbody,
+  .admin-table tr,
+  .admin-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-table tr {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+
+  .admin-table td {
+    padding: 4px 0;
+    border: none;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .admin-table td::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #888;
+    flex-shrink: 0;
+  }
+
+  .admin-row-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    justify-content: flex-end;
+  }
+
+  /* Form sections */
+  .admin-form {
+    max-width: 100%;
+  }
+
+  .admin-fieldset--section {
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .admin-form-actions {
+    border-radius: 12px;
+    padding: 14px 16px;
+    flex-direction: column;
+  }
+
+  .admin-form-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Pipeline cards */
+  .admin-pipeline-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .admin-pipeline-card {
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  /* Receipt panel */
+  .admin-receipt-panel {
+    margin-top: 16px;
+    border-radius: 12px;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 380px) {
+  .admin-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-login-card {
+    margin: 16px 12px;
+    padding: 20px 16px;
+  }
+}

@@ -334,7 +334,8 @@ const App = () => {
         <Route path="/" element={<Nested />}>
           <Route index element={<HomePage properties={properties} loading={loading} error={error} />} />
           <Route path="about" element={<AboutPage />} />
-          <Route path="login" element={<BookingsPage />} />
+          <Route path="bookings" element={<BookingsPage />} />
+          <Route path="login" element={<Navigate to="/bookings" replace />} />
           <Route path="admin" element={<AdminPage onListingsChange={refreshListings} />} />
           <Route path="admin/logout" element={<AdminLogoutPage />} />
           <Route path="property/:id" element={<PropertyDetailsPage properties={properties} />} />

@@ -81,7 +81,7 @@ const Nested = () => {
               <NavLink to="/about" className="nav-pill" style={navPillStyle}>
                 About
               </NavLink>
-              <NavLink to="/login" className="nav-pill" style={navPillStyle}>
+              <NavLink to="/bookings" className="nav-pill" style={navPillStyle}>
                 Bookings
               </NavLink>
               <NavLink to="/checkout" className="nav-pill" style={navPillStyle}>

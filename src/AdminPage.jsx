@@ -545,16 +545,16 @@ const AdminPage = ({ onListingsChange }) => {
               <tbody>
                 {listings.map((row) => (
                   <tr key={row.key}>
-                    <td><strong>{row.title}</strong></td>
-                    <td>{row.city}</td>
-                    <td>
+                    <td data-label="Property"><strong>{row.title}</strong></td>
+                    <td data-label="City">{row.city}</td>
+                    <td data-label="Type">
                       <span className={`admin-type-pill admin-type-pill--${row.type === 'Sale' ? 'sale' : 'rent'}`}>
                         {row.type}
                       </span>
                     </td>
-                    <td>{row.price}</td>
-                    <td>{row.source === 'house' ? 'Database' : 'Catalog'}</td>
-                    <td>{row.isActive ? 'Live' : 'Hidden'}</td>
+                    <td data-label="Price">{row.price}</td>
+                    <td data-label="Source">{row.source === 'house' ? 'Database' : 'Catalog'}</td>
+                    <td data-label="Status">{row.isActive ? 'Live' : 'Hidden'}</td>
                     <td className="admin-row-actions">
                       <button type="button" className="btn btn-secondary btn-sm" onClick={() => startEdit(row)}>
                         Edit
