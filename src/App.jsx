@@ -134,7 +134,7 @@ const HomePage = ({ properties, loading, error }) => {
         <section className="section office-block">
           <h2>Our Office</h2>
           <p>16, Islamic Shopping Mall, Mall Block D (Upstairs), Bashorun, Ibadan</p>
-          <p><a href="mailto:nawfhome@gmail.com">nawfhome@gmail.com</a></p>
+          <p>nawfhome@gmail.com</p>
         </section>
       </Reveal>
     </>
@@ -239,37 +239,39 @@ const BookingsPage = () => {
       {error && <p className="error-text" style={{ marginBottom: '16px' }}>{error}</p>}
       <div className="grid">
         {items.map((property) => (
-          <article key={property.listingKey ?? `item-${property.id}`} className="property-card">
-            <img className="property-image" src={property.image} alt={property.title} loading="lazy" />
-            <span className="badge">{property.badge}</span>
-            <h3>{property.title}</h3>
-            <p className="meta">
-              {property.city} • {property.type}
-            </p>
-            <p className="price">{property.price}</p>
-            <p className="features">
-              {property.bedrooms} Beds • {property.bathrooms} Baths • {(property.sqft ?? 0).toLocaleString()} sqft
-            </p>
-            <div className="property-card-actions">
-              <Link
-                className="btn btn-secondary"
-                to={`/property/${property.listingKey ?? `item-${property.id}`}`}
-                state={{ property }}
-              >
-                View Details
-              </Link>
-              <Link
-                className={`btn btn-primary ${property.type === 'Rent' ? 'rent-now' : ''}`}
-                to="/checkout"
-                state={{
-                  listingKey: property.listingKey ?? String(property.id),
-                  intent: property.type === 'Rent' ? 'rent' : 'buy',
-                }}
-              >
-                {property.type === 'Rent' ? 'Rent Now' : 'Buy Now'}
-              </Link>
-            </div>
-          </article>
+          <Link
+            key={property.listingKey ?? `item-${property.id}`}
+            to={`/property/${property.listingKey ?? `item-${property.id}`}`}
+            state={{ property }}
+            style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+          >
+            <article className="property-card property-card--clickable">
+              <img className="property-image" src={property.image} alt={property.title} loading="lazy" />
+              <span className="badge">{property.badge}</span>
+              <h3>{property.title}</h3>
+              <p className="meta">
+                {property.city} • {property.type}
+              </p>
+              <p className="price">{property.price}</p>
+              <p className="features">
+                {property.bedrooms} Beds • {property.bathrooms} Baths • {(property.sqft ?? 0).toLocaleString()} sqft
+              </p>
+              <div className="property-card-actions">
+                <span className="btn btn-secondary">View Details</span>
+                <Link
+                  className={`btn btn-primary ${property.type === 'Rent' ? 'rent-now' : ''}`}
+                  to="/checkout"
+                  state={{
+                    listingKey: property.listingKey ?? String(property.id),
+                    intent: property.type === 'Rent' ? 'rent' : 'buy',
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {property.type === 'Rent' ? 'Rent Now' : 'Buy Now'}
+                </Link>
+              </div>
+            </article>
+          </Link>
         ))}
       </div>
     </section>

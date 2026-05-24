@@ -19,39 +19,40 @@ const SkeletonCard = () => {
 const PropertyCard = ({ property, index }) => {
   return (
     <Reveal delay={Math.min(index * 60, 360)}>
-      <article className="property-card">
-        <div className="property-image-frame">
-          <img className="property-image" src={property.image} alt={property.title} loading="lazy" />
-        </div>
-        <span className="badge">{property.badge}</span>
-        <h3>{property.title}</h3>
-        <p className="meta">
-          {property.city} • {property.type}
-        </p>
-        <p className="price">{property.price}</p>
-        <p className="features">
-          {property.bedrooms} Beds • {property.bathrooms} Baths • {(property.sqft ?? 0).toLocaleString()} sqft
-        </p>
-        <div className="property-card-actions">
-          <Link
-            className="btn btn-secondary"
-            to={`/property/${property.listingKey ?? property.id}`}
-            state={{ property }}
-          >
-            View Details
-          </Link>
-          <Link
-            className={`btn btn-primary ${property.type === 'Rent' ? 'rent-now' : ''}`}
-            to="/checkout"
-            state={{
-              listingKey: property.listingKey ?? String(property.id),
-              intent: property.type === 'Rent' ? 'rent' : 'buy',
-            }}
-          >
-            {property.type === 'Rent' ? 'Rent Now' : 'Buy Now'}
-          </Link>
-        </div>
-      </article>
+      <Link
+        to={`/property/${property.listingKey ?? property.id}`}
+        state={{ property }}
+        style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+      >
+        <article className="property-card property-card--clickable">
+          <div className="property-image-frame">
+            <img className="property-image" src={property.image} alt={property.title} loading="lazy" />
+          </div>
+          <span className="badge">{property.badge}</span>
+          <h3>{property.title}</h3>
+          <p className="meta">
+            {property.city} • {property.type}
+          </p>
+          <p className="price">{property.price}</p>
+          <p className="features">
+            {property.bedrooms} Beds • {property.bathrooms} Baths • {(property.sqft ?? 0).toLocaleString()} sqft
+          </p>
+          <div className="property-card-actions">
+            <span className="btn btn-secondary">View Details</span>
+            <Link
+              className={`btn btn-primary ${property.type === 'Rent' ? 'rent-now' : ''}`}
+              to="/checkout"
+              state={{
+                listingKey: property.listingKey ?? String(property.id),
+                intent: property.type === 'Rent' ? 'rent' : 'buy',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {property.type === 'Rent' ? 'Rent Now' : 'Buy Now'}
+            </Link>
+          </div>
+        </article>
+      </Link>
     </Reveal>
   )
 }
