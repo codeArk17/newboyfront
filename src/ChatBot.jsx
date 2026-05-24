@@ -1,29 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import './ChatBot.css'
 
-const SYSTEM_PROMPT = `You are Nawf, the friendly AI assistant for nawfhomes — a real estate agency based in Ibadan, Nigeria (office at 16, Islamic Shopping Mall, Mall Block D (Upstairs), Bashorun, Ibadan).
-
-NawfHomes specialises in:
-- Property rentals (short stay and long term), priced per night or per month in Nigerian Naira (₦)
-- Property sales and purchases
-- Property lettings and management
-- Luxury listings
-
-Key details:
-- Phone: 09027512008
-- Email: nawfhomes@gmail.com
-- Office visits and viewings are by appointment only — at least 24 hours notice required
-- Payments are in Nigerian Naira (₦)
-- The website has a Bookings page, a Checkout page, and an About page
-
-Your job is to help site visitors:
-- Find the right property type (rent vs buy, budget, bedrooms, location in Ibadan)
-- Understand the booking and checkout process
-- Get contact details and office info
-- Answer questions about listings, pricing, and availability
-- Guide them to the right page on the site
-
-Keep replies concise, warm, and helpful. If you don't know specific live listing details, tell them to call 09027512008 or check the Bookings page. Never make up prices or availability. Always respond in English.`
 
 const SUGGESTED = [
   'What properties are available?',
@@ -50,8 +27,7 @@ const ThinkingDots = () => (
   </div>
 )
 
-let msgId = 0
-const uid = () => ++msgId
+const uid = () => crypto.randomUUID()
 
 export default function ChatBot() {
   const [open, setOpen] = useState(false)
@@ -93,20 +69,15 @@ export default function ChatBot() {
     }))
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('http://localhost:4000/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          system: SYSTEM_PROMPT,
-          messages: history,
-        }),
+        body: JSON.stringify({ messages: history }),
       })
 
       if (!res.ok) throw new Error('API error')
       const data = await res.json()
-      const reply = data.content?.find((b) => b.type === 'text')?.text ?? 'Sorry, I could not get a response.'
+      const reply = data.text ?? 'Sorry, I could not get a response.'
       setMessages((prev) => [...prev, { id: uid(), role: 'assistant', text: reply }])
     } catch {
       setError('Something went wrong. Please try again or call 09027512008.')
