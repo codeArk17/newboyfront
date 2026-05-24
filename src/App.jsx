@@ -134,7 +134,7 @@ const HomePage = ({ properties, loading, error }) => {
         <section className="section office-block">
           <h2>Our Office</h2>
           <p>16, Islamic Shopping Mall, Mall Block D (Upstairs), Bashorun, Ibadan</p>
-          <p>nawfhome@gmail.com</p>
+          <p><a href="mailto:nawfhome@gmail.com">nawfhome@gmail.com</a></p>
         </section>
       </Reveal>
     </>
