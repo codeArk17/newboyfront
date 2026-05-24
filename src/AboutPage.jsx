@@ -83,9 +83,9 @@ const AboutPage = () => {
             <br />
             16, Islamic Shopping Mall, Mall Block D (Upstairs), Bashorun, Ibadan
             <br />
-            <a href="mailto:nawfhome@gmail.com">nawfhome@gmail.com</a>
+            <a href="mailto:nawfhomes@gmail.com">nawfhomes@gmail.com</a>
             <br />
-            <a href="tel:09027512008">09027512008</a>
+            <a href="https://wa.me/2349027512008" target="_blank" rel="noreferrer">09027512008</a>
           </p>
           <p className="about-note">
             <strong>Please note:</strong> Office visits and property viewings are by appointment only.

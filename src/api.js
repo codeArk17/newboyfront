@@ -18,7 +18,7 @@ async function apiFetch(path, { signal, timeout = DEFAULT_TIMEOUT, ...init } = {
   }
 }
 
-/** Demo tour clips — only for static JSON / fallback listings, not admin DB houses. */
+/** Demo tour clips for listings that have no video set. */
 export const DEMO_TOUR_VIDEOS = [
   'https://www.w3schools.com/html/mov_bbb.mp4',
   'https://www.w3schools.com/html/movie.mp4',
@@ -92,114 +92,48 @@ export function findListing(list, routeId) {
         p.listingKey === routeId ||
         String(p.id) === routeId ||
         p.listingKey === `house-${routeId}` ||
-        p.listingKey === `property-${routeId}` ||
-        p.listingKey === `fallback-${routeId}`,
+        p.listingKey === `property-${routeId}`,
     ) ?? null
   )
 }
 
-/** Load one listing by route id (e.g. house-3, property-1, or bare numeric id). */
+/** Load one listing by route id (e.g. house-3 or bare numeric id). */
 export async function fetchListingByKey(routeId, signal) {
   const cached = findListing(getCachedListings(), routeId)
   if (cached) return cached
 
   const dash = routeId.indexOf('-')
-  const source = dash > 0 ? routeId.slice(0, dash) : null
   const id = Number(dash > 0 ? routeId.slice(dash + 1) : routeId)
   if (!Number.isFinite(id)) return null
 
-  if (!source || source === 'house') {
-    try {
-      const houses = await getHouses(signal)
-      const match = houses.find((x) => x.id === id)
-      if (match) return mapHouseToProperty(match)
-    } catch {
-      /* try other sources */
-    }
-  }
-
-  if (!source || source === 'property') {
-    try {
-      const props = await getProperties(signal)
-      const match = props.find((x) => x.id === id)
-      if (match) return tagListing(match, 'property')
-    } catch {
-      /* try fallback */
-    }
-  }
-
-  if (!source || source === 'fallback') {
-    try {
-      const fallback = await loadFallbackListings(signal)
-      const match = fallback.find((x) => x.id === id)
-      if (match) return tagListing(match, 'fallback')
-    } catch {
-      return null
-    }
+  try {
+    const houses = await getHouses(signal)
+    const match = houses.find((x) => x.id === id)
+    if (match) return mapHouseToProperty(match)
+  } catch {
+    return null
   }
 
   return null
 }
 
-async function loadFallbackListings(signal) {
-  const res = await fetch('/listings-fallback.json', { signal })
-  if (!res.ok) throw new Error('Fallback listings unavailable')
-  return res.json()
-}
-
-function mergeListings(houses, properties) {
-  const taggedProperties = (properties ?? []).map((p) => tagListing(p, 'property'))
-  return [...houses, ...taggedProperties]
-}
-
-/** Properties + houses merged; falls back to static JSON when API is down. */
+/** Houses only from the database. */
 export async function loadListings(signal) {
-  const [houses, properties] = await Promise.all([
-    getHouses(signal)
-      .then((raw) => (raw ?? []).map(mapHouseToProperty))
-      .catch(() => []),
-    getProperties(signal)
-      .then((raw) => raw ?? [])
-      .catch(() => []),
-  ])
-
-  const combined = mergeListings(houses, properties)
-  if (combined.length > 0) {
-    return { data: combined, offline: false }
-  }
-
-  const fallback = await loadFallbackListings(signal)
-  return { data: (fallback ?? []).map((p) => tagListing(p, 'fallback')), offline: true }
+  const houses = await getHouses(signal).then((raw) => (raw ?? []).map(mapHouseToProperty)).catch(() => [])
+  return { data: houses, offline: houses.length === 0 }
 }
 
 /**
- * Fetches houses first and calls onPartial so the UI can render immediately,
- * then merges in file-based properties when ready.
+ * Fetches houses from the database and calls onPartial immediately so
+ * the UI can render as soon as data arrives.
  */
 export async function loadListingsProgressive(onPartial, signal) {
-  const housesPromise = getHouses(signal)
+  const houses = await getHouses(signal)
     .then((raw) => (raw ?? []).map(mapHouseToProperty))
     .catch(() => [])
 
-  const propertiesPromise = getProperties(signal)
-    .then((raw) => raw ?? [])
-    .catch(() => [])
-
-  const houses = await housesPromise
-  if (houses.length > 0) {
-    onPartial({ data: houses, partial: true })
-  }
-
-  const [housesFinal, properties] = await Promise.all([housesPromise, propertiesPromise])
-  const combined = mergeListings(housesFinal, properties)
-  if (combined.length > 0) {
-    return { data: combined, offline: false }
-  }
-
-  const fallback = await loadFallbackListings(signal)
-  const fallbackData = (fallback ?? []).map((p) => tagListing(p, 'fallback'))
-  onPartial({ data: fallbackData, partial: false })
-  return { data: fallbackData, offline: true }
+  onPartial({ data: houses, partial: false })
+  return { data: houses, offline: houses.length === 0 }
 }
 
 let listingsCache = null
@@ -251,12 +185,6 @@ export async function getHealth() {
   }
 }
 
-export async function getProperties(signal) {
-  const res = await apiFetch('/api/properties', { signal })
-  if (!res.ok) throw new Error('Failed to load properties')
-  return res.json()
-}
-
 export async function getHouses(signal) {
   const res = await apiFetch('/api/houses', { signal })
   if (!res.ok) throw new Error('Failed to load houses')
@@ -303,12 +231,6 @@ export async function getAdminHouses(signal) {
   return res.json()
 }
 
-export async function getAdminProperties(signal) {
-  const res = await adminApiFetch('/api/admin/properties', { signal })
-  if (!res.ok) throw new Error('Failed to load catalog properties')
-  return res.json()
-}
-
 export async function createHouse(payload) {
   const res = await adminApiFetch('/api/houses', {
     method: 'POST',
@@ -340,42 +262,6 @@ export async function deleteHouse(id) {
   if (!res.ok) {
     const err = await safeJson(res)
     throw new Error(err?.error || 'Failed to delete house')
-  }
-  invalidateListingsCache()
-  return true
-}
-
-export async function createCatalogProperty(payload) {
-  const res = await adminApiFetch('/api/admin/properties', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  })
-  if (!res.ok) {
-    const err = await safeJson(res)
-    throw new Error(err?.error || 'Failed to create property')
-  }
-  invalidateListingsCache()
-  return res.json()
-}
-
-export async function updateCatalogProperty(id, payload) {
-  const res = await adminApiFetch(`/api/admin/properties/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(payload),
-  })
-  if (!res.ok) {
-    const err = await safeJson(res)
-    throw new Error(err?.error || 'Failed to update property')
-  }
-  invalidateListingsCache()
-  return res.json()
-}
-
-export async function deleteCatalogProperty(id) {
-  const res = await adminApiFetch(`/api/admin/properties/${id}`, { method: 'DELETE' })
-  if (!res.ok) {
-    const err = await safeJson(res)
-    throw new Error(err?.error || 'Failed to delete property')
   }
   invalidateListingsCache()
   return true

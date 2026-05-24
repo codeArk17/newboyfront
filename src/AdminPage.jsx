@@ -1,17 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  createCatalogProperty,
   createHouse,
-  deleteCatalogProperty,
   deleteHouse,
   getAdminHouses,
-  getAdminProperties,
   getAdminPaymentReceipt,
   getAdminPayments,
   getAdminStats,
   mapHouseToProperty,
-  updateCatalogProperty,
   updateHouse,
 } from './api'
 import { formatNaira } from './pricing'
@@ -36,7 +32,6 @@ const EMPTY_FORM = {
   imageUrl: '',
   videoTourUrl: '',
   badge: 'Available',
-  storage: 'database',
 }
 
 function DonutChart({ rent, sale }) {
@@ -113,7 +108,6 @@ const AdminPage = ({ onListingsChange }) => {
   const [tab, setTab] = useState('overview')
   const [stats, setStats] = useState(null)
   const [houses, setHouses] = useState([])
-  const [catalog, setCatalog] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -131,14 +125,12 @@ const AdminPage = ({ onListingsChange }) => {
     setLoading(true)
     setError('')
     try {
-      const [statsData, housesData, catalogData] = await Promise.all([
+      const [statsData, housesData] = await Promise.all([
         getAdminStats(),
         getAdminHouses(),
-        getAdminProperties(),
       ])
       setStats(statsData)
       setHouses(housesData)
-      setCatalog(catalogData)
     } catch (e) {
       if (e.message?.includes('401') || String(e).includes('Admin')) {
         clearAdminSession()
@@ -186,7 +178,7 @@ const AdminPage = ({ onListingsChange }) => {
   }
 
   const listings = useMemo(() => {
-    const db = houses.map((h) => {
+    return houses.map((h) => {
       const mapped = mapHouseToProperty(h)
       return {
         key: `house-${h.id}`,
@@ -199,20 +191,8 @@ const AdminPage = ({ onListingsChange }) => {
         isActive: h.isActive,
         raw: h,
       }
-    })
-    const file = catalog.map((p) => ({
-      key: `property-${p.id}`,
-      source: 'property',
-      id: p.id,
-      title: p.title,
-      city: p.city,
-      type: p.type,
-      price: p.price,
-      isActive: true,
-      raw: p,
-    }))
-    return [...db, ...file].sort((a, b) => a.title.localeCompare(b.title))
-  }, [houses, catalog])
+    }).sort((a, b) => a.title.localeCompare(b.title))
+  }, [houses])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -261,43 +241,22 @@ const AdminPage = ({ onListingsChange }) => {
 
   const startEdit = (row) => {
     setTab('add')
-    if (row.source === 'house') {
-      const h = row.raw
-      setForm({
-        title: h.title,
-        city: h.city,
-        address: h.address || '',
-        description: h.description || '',
-        listingType: h.listingType === 'Sale' ? 'Sale' : 'Rent',
-        price: String(Number(h.pricePerNight)),
-        bedrooms: h.bedrooms,
-        bathrooms: h.bathrooms,
-        sqft: h.sqft ?? 0,
-        imageUrl: h.imageUrl || '',
-        videoTourUrl: h.videoTourUrl || '',
-        badge: h.isActive ? 'Available' : 'Inactive',
-        storage: 'database',
-      })
-      setEditing({ source: 'house', id: h.id })
-    } else {
-      const p = row.raw
-      setForm({
-        title: p.title,
-        city: p.city,
-        address: '',
-        description: '',
-        listingType: p.type === 'Sale' ? 'Sale' : 'Rent',
-        price: p.price,
-        bedrooms: p.bedrooms,
-        bathrooms: p.bathrooms,
-        sqft: p.sqft ?? 0,
-        imageUrl: p.image || '',
-        videoTourUrl: '',
-        badge: p.badge || 'Available',
-        storage: 'catalog',
-      })
-      setEditing({ source: 'property', id: p.id })
-    }
+    const h = row.raw
+    setForm({
+      title: h.title,
+      city: h.city,
+      address: h.address || '',
+      description: h.description || '',
+      listingType: h.listingType === 'Sale' ? 'Sale' : 'Rent',
+      price: String(Number(h.pricePerNight)),
+      bedrooms: h.bedrooms,
+      bathrooms: h.bathrooms,
+      sqft: h.sqft ?? 0,
+      imageUrl: h.imageUrl || '',
+      videoTourUrl: h.videoTourUrl || '',
+      badge: h.isActive ? 'Available' : 'Inactive',
+    })
+    setEditing({ source: 'house', id: h.id })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -312,55 +271,34 @@ const AdminPage = ({ onListingsChange }) => {
     setError('')
     setSuccess('')
 
-    const useCatalog = form.storage === 'catalog' || editing?.source === 'property'
-
     try {
-      if (useCatalog) {
-        const payload = {
-          title: form.title,
-          city: form.city,
-          price: form.price.includes('₦') ? form.price : `₦${Number(form.price).toLocaleString('en-NG')}`,
-          type: form.listingType,
-          badge: form.badge,
-          bedrooms: Number(form.bedrooms),
-          bathrooms: Number(form.bathrooms),
-          sqft: Number(form.sqft),
-          image: form.imageUrl,
-        }
-        if (editing?.source === 'property') {
-          await updateCatalogProperty(editing.id, payload)
-          setSuccess('Catalog listing updated — visible on the home page.')
-        } else {
-          await createCatalogProperty(payload)
-          setSuccess('Catalog listing created — visible on the home page.')
-        }
-      } else {
-        const price = Number(form.price)
-        if (!Number.isFinite(price) || price < 0) throw new Error('Enter a valid price.')
-        if (price > MAX_PRICE) throw new Error(`Price cannot exceed ₦${MAX_PRICE.toLocaleString('en-NG')}.`)
+      const price = Number(form.price)
+      if (!Number.isFinite(price) || price < 0) throw new Error('Enter a valid price.')
+      if (price > MAX_PRICE) throw new Error(`Price cannot exceed ₦${MAX_PRICE.toLocaleString('en-NG')}.`)
 
-        const payload = {
-          title: form.title,
-          city: form.city,
-          address: form.address || 'n/a',
-          description: form.description || 'n/a',
-          listingType: form.listingType,
-          pricePerNight: price,
-          bedrooms: Number(form.bedrooms),
-          bathrooms: Number(form.bathrooms),
-          sqft: Number(form.sqft),
-          imageUrl: form.imageUrl || null,
-          videoTourUrl: form.videoTourUrl?.trim() || null,
-          isActive: form.badge !== 'Inactive',
-        }
-        if (editing?.source === 'house') {
-          await updateHouse(editing.id, payload)
-          setSuccess('Property updated — home page listings refreshed.')
-        } else {
-          await createHouse(payload)
-          setSuccess('Property published to the home page.')
-        }
+      const payload = {
+        title: form.title,
+        city: form.city,
+        address: form.address || 'n/a',
+        description: form.description || 'n/a',
+        listingType: form.listingType,
+        pricePerNight: price,
+        bedrooms: Number(form.bedrooms),
+        bathrooms: Number(form.bathrooms),
+        sqft: Number(form.sqft),
+        imageUrl: form.imageUrl || null,
+        videoTourUrl: form.videoTourUrl?.trim() || null,
+        isActive: form.badge !== 'Inactive',
       }
+
+      if (editing?.source === 'house') {
+        await updateHouse(editing.id, payload)
+        setSuccess('Property updated — home page listings refreshed.')
+      } else {
+        await createHouse(payload)
+        setSuccess('Property published to the home page.')
+      }
+
       resetForm()
       setTab('listings')
       notifyHome()
@@ -376,11 +314,7 @@ const AdminPage = ({ onListingsChange }) => {
     if (!window.confirm(`Delete "${row.title}"? This cannot be undone.`)) return
     setError('')
     try {
-      if (row.source === 'house') {
-        await deleteHouse(row.id)
-      } else {
-        await deleteCatalogProperty(row.id)
-      }
+      await deleteHouse(row.id)
       setSuccess('Listing removed from the site.')
       notifyHome()
       await loadDashboard()
@@ -537,7 +471,6 @@ const AdminPage = ({ onListingsChange }) => {
                   <th>City</th>
                   <th>Type</th>
                   <th>Price</th>
-                  <th>Source</th>
                   <th>Status</th>
                   <th aria-label="Actions" />
                 </tr>
@@ -553,7 +486,6 @@ const AdminPage = ({ onListingsChange }) => {
                       </span>
                     </td>
                     <td data-label="Price">{row.price}</td>
-                    <td data-label="Source">{row.source === 'house' ? 'Database' : 'Catalog'}</td>
                     <td data-label="Status">{row.isActive ? 'Live' : 'Hidden'}</td>
                     <td className="admin-row-actions">
                       <button type="button" className="btn btn-secondary btn-sm" onClick={() => startEdit(row)}>
@@ -703,33 +635,18 @@ const AdminPage = ({ onListingsChange }) => {
       {tab === 'add' && (
         <form className="admin-form" onSubmit={handleSubmit} noValidate>
 
-          {/* ── Section: Publish settings ── */}
-          {!editing && (
-            <fieldset className="admin-fieldset admin-fieldset--section">
-              <legend>Publish settings</legend>
-              <div className="admin-form-row admin-form-row--2">
-                <label className="admin-label">
-                  Publish to
-                  <select name="storage" value={form.storage} onChange={onChange}>
-                    <option value="database">Database — shows on home immediately</option>
-                    <option value="catalog">Catalog file (legacy)</option>
-                  </select>
-                  <span className="admin-field-hint">Database is recommended for new listings</span>
-                </label>
-                <label className="admin-label">
-                  Listing type <span className="admin-required">*</span>
-                  <select name="listingType" value={form.listingType} onChange={onChange}>
-                    <option value="Rent">Rent</option>
-                    <option value="Sale">Sale</option>
-                  </select>
-                </label>
-              </div>
-            </fieldset>
-          )}
-
-          {/* ── Section: Basic info ── */}
+        {/* ── Section: Basic info ── */}
           <fieldset className="admin-fieldset admin-fieldset--section">
             <legend>Basic info</legend>
+            <div className="admin-form-row admin-form-row--2">
+              <label className="admin-label">
+                Listing type <span className="admin-required">*</span>
+                <select name="listingType" value={form.listingType} onChange={onChange}>
+                  <option value="Rent">Rent</option>
+                  <option value="Sale">Sale</option>
+                </select>
+              </label>
+            </div>
             <div className="admin-form-row admin-form-row--2">
               <label className="admin-label">
                 Title <span className="admin-required">*</span>
@@ -752,8 +669,7 @@ const AdminPage = ({ onListingsChange }) => {
                 />
               </label>
             </div>
-            {form.storage === 'database' && (
-              <label className="admin-label">
+            <label className="admin-label">
                 Address
                 <input
                   name="address"
@@ -762,9 +678,7 @@ const AdminPage = ({ onListingsChange }) => {
                   placeholder="e.g. 12 Abeokuta Road, Agodi"
                 />
               </label>
-            )}
-            {form.storage === 'database' && (
-              <label className="admin-label">
+            <label className="admin-label">
                 Description
                 <textarea
                   name="description"
@@ -775,7 +689,6 @@ const AdminPage = ({ onListingsChange }) => {
                   style={{ resize: 'vertical', lineHeight: 1.6 }}
                 />
               </label>
-            )}
           </fieldset>
 
           {/* ── Section: Pricing ── */}
@@ -785,12 +698,12 @@ const AdminPage = ({ onListingsChange }) => {
               {form.listingType === 'Rent' ? 'Price per night (₦)' : 'Sale price (₦)'} <span className="admin-required">*</span>
               <input
                 name="price"
-                type={form.storage === 'catalog' ? 'text' : 'number'}
+                type="number"
                 min="0"
                 value={form.price}
                 onChange={onChange}
                 required
-                placeholder={form.storage === 'catalog' ? '₦1,250,000' : '45000'}
+                placeholder="45000"
               />
               <span className="admin-field-hint">
                 {form.listingType === 'Rent' ? 'Amount in Naira charged per night' : 'Full asking price in Naira'}
@@ -851,8 +764,7 @@ const AdminPage = ({ onListingsChange }) => {
                 />
               </div>
             )}
-            {form.storage === 'database' && (
-              <label className="admin-label" style={{ marginTop: 14 }}>
+            <label className="admin-label" style={{ marginTop: 14 }}>
                 Video tour URL <span style={{ fontWeight: 400, color: '#888' }}>(optional)</span>
                 <input
                   name="videoTourUrl"
@@ -863,7 +775,6 @@ const AdminPage = ({ onListingsChange }) => {
                 />
                 <span className="admin-field-hint">Direct link to an MP4 video tour</span>
               </label>
-            )}
           </fieldset>
 
           {/* ── Actions ── */}

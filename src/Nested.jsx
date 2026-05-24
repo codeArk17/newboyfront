@@ -44,7 +44,7 @@ const Nested = () => {
     <div className="site-shell">
       <div className="contact-strip contact-strip--dark">
         <p>Challenge 22, Nigeria</p>
-        <a href="tel:09027512008">09027512008</a>
+        <a href="https://wa.me/2349027512008" target="_blank" rel="noreferrer">09027512008</a>
         <p>
           <strong>Important:</strong> Office visits by appointment only.
         </p>

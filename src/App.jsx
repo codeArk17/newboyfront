@@ -79,8 +79,8 @@ const HomePage = ({ properties, loading, error }) => {
               <a href="#discover" className="btn btn-primary">
                 View listings
               </a>
-              <a href="tel:09027512008" className="btn btn-secondary">
-                Call 09027512008
+              <a href="https://wa.me/2349027512008" target="_blank" rel="noreferrer" className="btn btn-secondary">
+                WhatsApp 09027512008
               </a>
             </div>
             <p className="success-text">
@@ -239,39 +239,37 @@ const BookingsPage = () => {
       {error && <p className="error-text" style={{ marginBottom: '16px' }}>{error}</p>}
       <div className="grid">
         {items.map((property) => (
-          <Link
-            key={property.listingKey ?? `item-${property.id}`}
-            to={`/property/${property.listingKey ?? `item-${property.id}`}`}
-            state={{ property }}
-            style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-          >
-            <article className="property-card property-card--clickable">
-              <img className="property-image" src={property.image} alt={property.title} loading="lazy" />
-              <span className="badge">{property.badge}</span>
-              <h3>{property.title}</h3>
-              <p className="meta">
-                {property.city} • {property.type}
-              </p>
-              <p className="price">{property.price}</p>
-              <p className="features">
-                {property.bedrooms} Beds • {property.bathrooms} Baths • {(property.sqft ?? 0).toLocaleString()} sqft
-              </p>
-              <div className="property-card-actions">
-                <span className="btn btn-secondary">View Details</span>
-                <Link
-                  className={`btn btn-primary ${property.type === 'Rent' ? 'rent-now' : ''}`}
-                  to="/checkout"
-                  state={{
-                    listingKey: property.listingKey ?? String(property.id),
-                    intent: property.type === 'Rent' ? 'rent' : 'buy',
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {property.type === 'Rent' ? 'Rent Now' : 'Buy Now'}
-                </Link>
-              </div>
-            </article>
-          </Link>
+          <article key={property.listingKey ?? `item-${property.id}`} className="property-card">
+            <img className="property-image" src={property.image} alt={property.title} loading="lazy" />
+            <span className="badge">{property.badge}</span>
+            <h3>{property.title}</h3>
+            <p className="meta">
+              {property.city} • {property.type}
+            </p>
+            <p className="price">{property.price}</p>
+            <p className="features">
+              {property.bedrooms} Beds • {property.bathrooms} Baths • {(property.sqft ?? 0).toLocaleString()} sqft
+            </p>
+            <div className="property-card-actions">
+              <Link
+                className="btn btn-secondary"
+                to={`/property/${property.listingKey ?? `item-${property.id}`}`}
+                state={{ property }}
+              >
+                View Details
+              </Link>
+              <Link
+                className={`btn btn-primary ${property.type === 'Rent' ? 'rent-now' : ''}`}
+                to="/checkout"
+                state={{
+                  listingKey: property.listingKey ?? String(property.id),
+                  intent: property.type === 'Rent' ? 'rent' : 'buy',
+                }}
+              >
+                {property.type === 'Rent' ? 'Rent Now' : 'Buy Now'}
+              </Link>
+            </div>
+          </article>
         ))}
       </div>
     </section>
@@ -308,9 +306,7 @@ const App = () => {
         if (!controller.signal.aborted) {
           setProperties(data)
           if (offline) {
-            setError(
-              'API offline — showing demo properties. Start the backend on port 4000 for live data.',
-            )
+            setError('API offline — no listings available. Start the backend on port 4000.')
           }
         }
       } catch (e) {
