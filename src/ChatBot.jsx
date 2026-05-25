@@ -110,15 +110,15 @@ export default function ChatBot() {
       </button>
 
       {/* Chat panel */}
-      <div className={`cb-panel ${open ? 'cb-panel--open' : ''}`} role="dialog" aria-label="NawftHomes chat assistant">
+      <div className={`cb-panel ${open ? 'cb-panel--open' : ''}`} role="dialog" aria-label="NawfHomes chat assistant">
         {/* Header */}
         <div className="cb-header">
           <div className="cb-header-avatar">
             <BotIcon />
           </div>
           <div className="cb-header-info">
-            <p className="cb-header-name">Nawft</p>
-            <p className="cb-header-sub">NawftHomes Assistant · Online</p>
+            <p className="cb-header-name">Nawf</p>
+            <p className="cb-header-sub">NawfHomes Assistant · Online</p>
           </div>
           <button className="cb-close" onClick={() => setOpen(false)} aria-label="Close" type="button">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
