@@ -34,7 +34,7 @@ export default function ChatBot() {
     {
       id: uid(),
       role: 'assistant',
-      text: "Hi! I'm Nawft 👋 Your NawftHomes assistant. Ask me anything about our properties, rentals, or how to book a viewing.",
+      text: "Hi! I'm Nawf 👋 Your NawfHomes assistant. Ask me anything about our properties, rentals, or how to book a viewing.",
     },
   ])
   const [input, setInput] = useState('')
