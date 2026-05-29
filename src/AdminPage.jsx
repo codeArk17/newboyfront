@@ -121,8 +121,6 @@ const AdminPage = ({ onListingsChange }) => {
   const [paymentsError, setPaymentsError] = useState('')
   const [receipt, setReceipt] = useState(null)
   const [receiptLoading, setReceiptLoading] = useState(false)
-  const [imageUploading, setImageUploading] = useState(false)
-  const [imageUploadError, setImageUploadError] = useState('')
   const [subImageUploading, setSubImageUploading] = useState(false)
   const [subImageUploadError, setSubImageUploadError] = useState('')
 
@@ -286,33 +284,6 @@ const AdminPage = ({ onListingsChange }) => {
   const resetForm = () => {
     setForm(EMPTY_FORM)
     setEditing(null)
-  }
-
-  const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setImageUploading(true)
-    setImageUploadError('')
-    try {
-      const adminKey = sessionStorage.getItem('nb_admin_key') || localStorage.getItem('nb_admin_key') || sessionStorage.getItem('adminKey') || localStorage.getItem('adminKey') || ''
-      const data = new FormData()
-      data.append('image', file)
-      const res = await fetch(UPLOAD_URL, {
-        method: 'POST',
-        headers: { 'X-Admin-Key': adminKey },
-        body: data,
-      })
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        throw new Error(body.error || `Upload failed (${res.status})`)
-      }
-      const { url } = await res.json()
-      setForm((prev) => ({ ...prev, imageUrl: url }))
-    } catch (err) {
-      setImageUploadError(err.message || 'Image upload failed')
-    } finally {
-      setImageUploading(false)
-    }
   }
 
   const handleSubImageUpload = async (e) => {
@@ -845,38 +816,6 @@ const AdminPage = ({ onListingsChange }) => {
           {/* ── Section: Media ── */}
           <fieldset className="admin-fieldset admin-fieldset--section">
             <legend>Media</legend>
-
-            {/* Main image — upload from device */}
-            <label className="admin-label">
-              Upload image from device
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
-                <label
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 6,
-                    padding: '8px 16px', borderRadius: 6, cursor: 'pointer',
-                    background: 'var(--accent, #2563eb)', color: '#fff',
-                    fontSize: 14, fontWeight: 500, whiteSpace: 'nowrap',
-                    opacity: imageUploading ? 0.6 : 1,
-                  }}
-                >
-                  {imageUploading ? 'Uploading…' : '📁 Choose file'}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    disabled={imageUploading}
-                    onChange={handleImageUpload}
-                  />
-                </label>
-                {imageUploading && <span style={{ fontSize: 13, color: '#888' }}>Please wait…</span>}
-              </div>
-              {imageUploadError && (
-                <span style={{ fontSize: 13, color: 'var(--error, #dc2626)', marginTop: 4, display: 'block' }}>
-                  {imageUploadError}
-                </span>
-              )}
-              <span className="admin-field-hint">JPG, PNG, WebP — max 5 MB. Uploads to your server.</span>
-            </label>
 
             {/* Or paste a URL */}
             <label className="admin-label" style={{ marginTop: 14 }}>

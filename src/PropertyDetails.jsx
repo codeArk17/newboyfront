@@ -208,7 +208,7 @@ const PropertyDetails = ({ properties }) => {
             <div className="grid">
               {property.videos.map((videoUrl) => (
                 <article key={videoUrl} className="property-card">
-                  <video controls src={videoUrl} className="property-detail-video" preload="metadata" />
+                  <video controls src={videoUrl} className="property-detail-video" preload="metadata" style={{ maxHeight: 320, width: '100%', objectFit: 'cover' }} />
                 </article>
               ))}
             </div>
