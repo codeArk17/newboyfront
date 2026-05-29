@@ -69,7 +69,7 @@ export function mapHouseToProperty(h) {
       type: listingType,
       badge: h.isActive ? (isLuxury ? 'Luxury' : 'Available') : 'Inactive',
       image,
-      gallery: image ? [image] : [],
+      gallery: [image, ...(Array.isArray(h.subImageUrls) ? h.subImageUrls : [])].filter(Boolean),
       videos: h.videoTourUrl?.trim() ? [h.videoTourUrl.trim()] : [],
     },
     'house',
