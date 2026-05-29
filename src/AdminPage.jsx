@@ -19,6 +19,7 @@ import {
 import './Admin.css'
 
 const MAX_PRICE = 500_000_000
+const UPLOAD_URL = 'https://newboy-1.onrender.com/api/admin/upload'
 const EMPTY_FORM = {
   title: '',
   city: '',
@@ -30,6 +31,7 @@ const EMPTY_FORM = {
   bathrooms: 1,
   sqft: 0,
   imageUrl: '',
+  subImageUrls: [],
   videoTourUrl: '',
   badge: 'Available',
 }
@@ -121,6 +123,8 @@ const AdminPage = ({ onListingsChange }) => {
   const [receiptLoading, setReceiptLoading] = useState(false)
   const [imageUploading, setImageUploading] = useState(false)
   const [imageUploadError, setImageUploadError] = useState('')
+  const [subImageUploading, setSubImageUploading] = useState(false)
+  const [subImageUploadError, setSubImageUploadError] = useState('')
 
   const loadDashboard = useCallback(async () => {
     if (!isAdminLoggedIn()) return
@@ -271,6 +275,7 @@ const AdminPage = ({ onListingsChange }) => {
       bathrooms: h.bathrooms,
       sqft: h.sqft ?? 0,
       imageUrl: h.imageUrl || '',
+      subImageUrls: Array.isArray(h.subImageUrls) ? h.subImageUrls : [],
       videoTourUrl: h.videoTourUrl || '',
       badge: h.isActive ? 'Available' : 'Inactive',
     })
@@ -289,10 +294,10 @@ const AdminPage = ({ onListingsChange }) => {
     setImageUploading(true)
     setImageUploadError('')
     try {
-      const adminKey = sessionStorage.getItem('adminKey') || localStorage.getItem('adminKey') || ''
+      const adminKey = sessionStorage.getItem('nb_admin_key') || localStorage.getItem('nb_admin_key') || sessionStorage.getItem('adminKey') || localStorage.getItem('adminKey') || ''
       const data = new FormData()
       data.append('image', file)
-      const res = await fetch('https://newboy-1.onrender.com/api/admin/upload', {
+      const res = await fetch(UPLOAD_URL, {
         method: 'POST',
         headers: { 'X-Admin-Key': adminKey },
         body: data,
@@ -308,6 +313,48 @@ const AdminPage = ({ onListingsChange }) => {
     } finally {
       setImageUploading(false)
     }
+  }
+
+  const handleSubImageUpload = async (e) => {
+    const files = Array.from(e.target.files || [])
+    if (!files.length) return
+    setSubImageUploading(true)
+    setSubImageUploadError('')
+    try {
+      const adminKey = sessionStorage.getItem('nb_admin_key') || localStorage.getItem('nb_admin_key') || sessionStorage.getItem('adminKey') || localStorage.getItem('adminKey') || ''
+      const uploaded = []
+      for (const file of files) {
+        const data = new FormData()
+        data.append('image', file)
+        const res = await fetch(UPLOAD_URL, {
+          method: 'POST',
+          headers: { 'X-Admin-Key': adminKey },
+          body: data,
+        })
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}))
+          throw new Error(body.error || `Upload failed (${res.status})`)
+        }
+        const { url } = await res.json()
+        uploaded.push(url)
+      }
+      setForm((prev) => ({
+        ...prev,
+        subImageUrls: [...(prev.subImageUrls || []), ...uploaded],
+      }))
+    } catch (err) {
+      setSubImageUploadError(err.message || 'Sub-image upload failed')
+    } finally {
+      setSubImageUploading(false)
+      e.target.value = ''
+    }
+  }
+
+  const removeSubImage = (index) => {
+    setForm((prev) => ({
+      ...prev,
+      subImageUrls: prev.subImageUrls.filter((_, i) => i !== index),
+    }))
   }
 
   const handleSubmit = async (e) => {
@@ -332,6 +379,7 @@ const AdminPage = ({ onListingsChange }) => {
         bathrooms: Number(form.bathrooms),
         sqft: Number(form.sqft),
         imageUrl: form.imageUrl || null,
+        subImageUrls: form.subImageUrls.length > 0 ? form.subImageUrls : [],
         videoTourUrl: form.videoTourUrl?.trim() || null,
         isActive: form.badge !== 'Inactive',
       }
@@ -561,7 +609,6 @@ const AdminPage = ({ onListingsChange }) => {
         </div>
       )}
 
-
       {tab === 'payments' && (
         <div className="admin-table-wrap">
           {paymentsLoading && <p className="meta">Loading payments from Paystack…</p>}
@@ -690,7 +737,7 @@ const AdminPage = ({ onListingsChange }) => {
       {tab === 'add' && (
         <form className="admin-form" onSubmit={handleSubmit} noValidate>
 
-        {/* ── Section: Basic info ── */}
+          {/* ── Section: Basic info ── */}
           <fieldset className="admin-fieldset admin-fieldset--section">
             <legend>Basic info</legend>
             <div className="admin-form-row admin-form-row--2">
@@ -725,25 +772,25 @@ const AdminPage = ({ onListingsChange }) => {
               </label>
             </div>
             <label className="admin-label">
-                Address
-                <input
-                  name="address"
-                  value={form.address}
-                  onChange={onChange}
-                  placeholder="e.g. 12 Abeokuta Road, Agodi"
-                />
-              </label>
+              Address
+              <input
+                name="address"
+                value={form.address}
+                onChange={onChange}
+                placeholder="e.g. 12 Abeokuta Road, Agodi"
+              />
+            </label>
             <label className="admin-label">
-                Description
-                <textarea
-                  name="description"
-                  value={form.description}
-                  onChange={onChange}
-                  rows={4}
-                  placeholder="Describe the property — location highlights, features, nearby landmarks…"
-                  style={{ resize: 'vertical', lineHeight: 1.6 }}
-                />
-              </label>
+              Description
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={onChange}
+                rows={4}
+                placeholder="Describe the property — location highlights, features, nearby landmarks…"
+                style={{ resize: 'vertical', lineHeight: 1.6 }}
+              />
+            </label>
           </fieldset>
 
           {/* ── Section: Pricing ── */}
@@ -799,7 +846,7 @@ const AdminPage = ({ onListingsChange }) => {
           <fieldset className="admin-fieldset admin-fieldset--section">
             <legend>Media</legend>
 
-            {/* Upload from device */}
+            {/* Main image — upload from device */}
             <label className="admin-label">
               Upload image from device
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
@@ -844,7 +891,7 @@ const AdminPage = ({ onListingsChange }) => {
               <span className="admin-field-hint">Direct image link (Unsplash, Cloudinary, etc.)</span>
             </label>
 
-            {/* Preview */}
+            {/* Main image preview */}
             {form.imageUrl && (
               <div style={{ marginTop: 10, position: 'relative', display: 'inline-block' }}>
                 <img
@@ -867,6 +914,82 @@ const AdminPage = ({ onListingsChange }) => {
               </div>
             )}
 
+            {/* ── Sub-pictures (gallery) ── */}
+            <label className="admin-label" style={{ marginTop: 20 }}>
+              Property gallery <span style={{ fontWeight: 400, color: '#888' }}>(optional)</span>
+              <span className="admin-field-hint" style={{ display: 'block', marginBottom: 8 }}>
+                Upload additional photos shown in the property gallery. You can select multiple files at once.
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <label
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    padding: '8px 16px', borderRadius: 6, cursor: 'pointer',
+                    background: 'var(--accent, #2563eb)', color: '#fff',
+                    fontSize: 14, fontWeight: 500, whiteSpace: 'nowrap',
+                    opacity: subImageUploading ? 0.6 : 1,
+                  }}
+                >
+                  {subImageUploading ? 'Uploading…' : '🖼️ Add photos'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    style={{ display: 'none' }}
+                    disabled={subImageUploading}
+                    onChange={handleSubImageUpload}
+                  />
+                </label>
+                {subImageUploading && (
+                  <span style={{ fontSize: 13, color: '#888' }}>Uploading, please wait…</span>
+                )}
+              </div>
+              {subImageUploadError && (
+                <span style={{ fontSize: 13, color: 'var(--error, #dc2626)', marginTop: 4, display: 'block' }}>
+                  {subImageUploadError}
+                </span>
+              )}
+            </label>
+
+            {/* Sub-image grid preview */}
+            {form.subImageUrls && form.subImageUrls.length > 0 && (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                gap: 10,
+                marginTop: 12,
+              }}>
+                {form.subImageUrls.map((url, idx) => (
+                  <div key={idx} style={{ position: 'relative' }}>
+                    <img
+                      src={url}
+                      alt={`Gallery photo ${idx + 1}`}
+                      onError={(e) => { e.currentTarget.style.display = 'none' }}
+                      style={{
+                        width: '100%', height: 90, objectFit: 'cover',
+                        borderRadius: 6, border: '1px solid var(--border)',
+                        display: 'block',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeSubImage(idx)}
+                      title="Remove photo"
+                      style={{
+                        position: 'absolute', top: 4, right: 4,
+                        background: 'rgba(0,0,0,0.6)', color: '#fff',
+                        border: 'none', borderRadius: '50%',
+                        width: 22, height: 22, cursor: 'pointer',
+                        fontSize: 13, lineHeight: '22px', textAlign: 'center',
+                        padding: 0,
+                      }}
+                    >×</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Video tour */}
             <label className="admin-label" style={{ marginTop: 14 }}>
               Video tour URL <span style={{ fontWeight: 400, color: '#888' }}>(optional)</span>
               <input
