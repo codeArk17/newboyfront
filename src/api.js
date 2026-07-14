@@ -300,8 +300,14 @@ export async function getAdminPaymentReceipt(reference, signal) {
   return res.json()
 }
 
-export async function changeAdminKey(currentKey, newKey) {
-  const res = await fetch(`${BASE_URL}/api/admin/key`, {
+export async function verifyAdminKey(key) {
+  const res = await apiFetch('/api/admin/verify', {
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Key': key },
+  })
+  return res
+}
+
+export async function changeAdminKey(currentKey, newKey) {  const res = await fetch(`${BASE_URL}/api/admin/key`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',

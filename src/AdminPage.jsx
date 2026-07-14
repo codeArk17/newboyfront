@@ -10,6 +10,7 @@ import {
   mapHouseToProperty,
   updateHouse,
   changeAdminKey,
+  verifyAdminKey,
 } from './api'
 import { formatNaira } from './pricing'
 import {
@@ -252,9 +253,7 @@ const AdminPage = ({ onListingsChange }) => {
     setLoginError('')
     try {
       setAdminSession(keyInput)
-      const res = await fetch('/api/admin/verify', {
-        headers: { 'X-Admin-Key': keyInput },
-      })
+      const res = await verifyAdminKey(keyInput)
       if (res.status === 401) {
         clearAdminSession()
         setLoginError('Invalid admin key')
