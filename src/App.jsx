@@ -189,7 +189,7 @@ const BookingsPage = () => {
         )
         if (!controller.signal.aborted) {
           setItems(data)
-          if (offline) setError('API offline — showing demo listings.')
+          if (offline) setError('Some listings may be unavailable right now.')
         }
       } catch (e) {
         if (e.name !== 'AbortError') {
@@ -306,7 +306,7 @@ const App = () => {
         if (!controller.signal.aborted) {
           setProperties(data)
           if (offline) {
-            setError('API offline — no listings available. Start the backend on port 4000.')
+            setError('Unable to load listings right now. Please try again later.')
           }
         }
       } catch (e) {
