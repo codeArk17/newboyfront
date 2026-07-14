@@ -11,6 +11,23 @@ import Reveal from './Reveal'
 import { clearAdminSession } from './adminAuth'
 import { getCachedListings, loadListingsProgressive } from './api'
 
+// Load the fallback/default listings from public folder
+async function loadDefaultListings() {
+  try {
+    const res = await fetch('/listings-fallback.json')
+    if (!res.ok) return []
+    const data = await res.json()
+    return data
+  } catch {
+    return []
+  }
+}
+
+// Returns true if the list only contains default placeholder listings
+function isDefaultOnly(list) {
+  return list.length > 0 && list.every((p) => String(p.id).startsWith('default-'))
+}
+
 const HomePage = ({ properties, loading, error }) => {
   const [search, setSearch] = useState('')
   const [type, setType] = useState('All')
@@ -188,12 +205,19 @@ const BookingsPage = () => {
           controller.signal,
         )
         if (!controller.signal.aborted) {
-          setItems(data)
-          if (offline) setError('Some listings may be unavailable right now.')
+          if (data.length > 0) {
+            setItems(data)
+          } else {
+            const defaults = await loadDefaultListings()
+            setItems(defaults)
+          }
+          if (offline) setError('')
         }
       } catch (e) {
         if (e.name !== 'AbortError') {
-          setError('Could not load properties.')
+          const defaults = await loadDefaultListings()
+          if (!controller.signal.aborted) setItems(defaults)
+          setError('')
         }
       } finally {
         if (!controller.signal.aborted) setLoading(false)
@@ -295,7 +319,7 @@ const App = () => {
 
         const { data, offline } = await loadListingsProgressive(
           ({ data: partial }) => {
-            if (!controller.signal.aborted) {
+            if (!controller.signal.aborted && partial.length > 0) {
               setProperties(partial)
               setLoading(false)
             }
@@ -304,14 +328,21 @@ const App = () => {
         )
 
         if (!controller.signal.aborted) {
-          setProperties(data)
-          if (offline) {
-            setError('Unable to load listings right now. Please try again later.')
+          if (data.length > 0) {
+            // Real listings from DB — use them, defaults disappear automatically
+            setProperties(data)
+          } else {
+            // DB is empty or offline — show default placeholder listings
+            const defaults = await loadDefaultListings()
+            setProperties(defaults)
+            if (offline) setError('')
           }
         }
       } catch (e) {
         if (e.name !== 'AbortError') {
-          setError('Could not load properties. Please try again later.')
+          // On error, try to show defaults so the page isn't blank
+          const defaults = await loadDefaultListings()
+          if (!controller.signal.aborted) setProperties(defaults)
         }
       } finally {
         if (!controller.signal.aborted) setLoading(false)
