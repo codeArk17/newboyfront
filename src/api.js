@@ -299,3 +299,19 @@ export async function getAdminPaymentReceipt(reference, signal) {
   if (!res.ok) throw new Error('Failed to load receipt')
   return res.json()
 }
+
+export async function changeAdminKey(currentKey, newKey) {
+  const res = await fetch(`${BASE_URL}/api/admin/key`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Admin-Key': currentKey,
+    },
+    body: JSON.stringify({ newKey }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err?.error || 'Failed to change admin key')
+  }
+  return res.json()
+}

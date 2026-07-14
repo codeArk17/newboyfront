@@ -9,6 +9,7 @@ import {
   getAdminStats,
   mapHouseToProperty,
   updateHouse,
+  changeAdminKey,
 } from './api'
 import { formatNaira } from './pricing'
 import {
@@ -124,6 +125,38 @@ const AdminPage = ({ onListingsChange }) => {
   const [subImageUploading, setSubImageUploading] = useState(false)
   const [subImageUploadError, setSubImageUploadError] = useState('')
 
+  // Settings — change admin key
+  const [keyForm, setKeyForm] = useState({ newKey: '', confirmKey: '' })
+  const [keyChanging, setKeyChanging] = useState(false)
+  const [keyError, setKeyError] = useState('')
+  const [keySuccess, setKeySuccess] = useState('')
+
+  const handleKeyChange = async (e) => {
+    e.preventDefault()
+    setKeyError('')
+    setKeySuccess('')
+    if (keyForm.newKey.length < 6) {
+      setKeyError('New key must be at least 6 characters.')
+      return
+    }
+    if (keyForm.newKey !== keyForm.confirmKey) {
+      setKeyError('Keys do not match.')
+      return
+    }
+    setKeyChanging(true)
+    try {
+      const currentKey = sessionStorage.getItem('nb_admin_key') || ''
+      await changeAdminKey(currentKey, keyForm.newKey)
+      // Update session with new key so subsequent requests still work
+      sessionStorage.setItem('nb_admin_key', keyForm.newKey)
+      setKeyForm({ newKey: '', confirmKey: '' })
+      setKeySuccess('Admin key changed successfully. Use the new key next time you log in.')
+    } catch (err) {
+      setKeyError(err.message || 'Failed to change key.')
+    } finally {
+      setKeyChanging(false)
+    }
+  }
   const loadDashboard = useCallback(async () => {
     if (!isAdminLoggedIn()) return
     setLoading(true)
@@ -440,14 +473,14 @@ const AdminPage = ({ onListingsChange }) => {
       </header>
 
       <nav className="admin-tabs" aria-label="Admin sections">
-        {['overview', 'listings', 'payments', 'add'].map((t) => (
+        {['overview', 'listings', 'payments', 'add', 'settings'].map((t) => (
           <button
             key={t}
             type="button"
             className={`admin-tab ${tab === t ? 'admin-tab--active' : ''}`}
             onClick={() => setTab(t)}
           >
-            {t === 'overview' ? 'Overview' : t === 'listings' ? 'All listings' : t === 'payments' ? 'Payments' : editing ? 'Edit listing' : 'Add new'}
+            {t === 'overview' ? 'Overview' : t === 'listings' ? 'All listings' : t === 'payments' ? 'Payments' : t === 'settings' ? 'Settings' : editing ? 'Edit listing' : 'Add new'}
           </button>
         ))}
       </nav>
@@ -705,8 +738,7 @@ const AdminPage = ({ onListingsChange }) => {
         </div>
       )}
 
-      {tab === 'add' && (
-        <form className="admin-form" onSubmit={handleSubmit} noValidate>
+      {tab === 'add' && (        <form className="admin-form" onSubmit={handleSubmit} noValidate>
 
           {/* ── Section: Basic info ── */}
           <fieldset className="admin-fieldset admin-fieldset--section">
@@ -954,6 +986,51 @@ const AdminPage = ({ onListingsChange }) => {
             )}
           </div>
         </form>
+      )}
+
+      {tab === 'settings' && (
+        <div style={{ maxWidth: 480 }}>
+          <h2 style={{ marginBottom: 4 }}>Settings</h2>
+          <p className="meta" style={{ marginBottom: 24 }}>Change your admin key. You'll need the new key next time you sign in.</p>
+
+          <form onSubmit={handleKeyChange} noValidate>
+            <fieldset className="admin-fieldset admin-fieldset--section">
+              <legend>Change admin key</legend>
+              <label className="admin-label">
+                New key <span className="admin-required">*</span>
+                <input
+                  type="password"
+                  value={keyForm.newKey}
+                  onChange={(e) => setKeyForm((p) => ({ ...p, newKey: e.target.value }))}
+                  placeholder="Min. 6 characters"
+                  required
+                  autoComplete="new-password"
+                />
+              </label>
+              <label className="admin-label" style={{ marginTop: 12 }}>
+                Confirm new key <span className="admin-required">*</span>
+                <input
+                  type="password"
+                  value={keyForm.confirmKey}
+                  onChange={(e) => setKeyForm((p) => ({ ...p, confirmKey: e.target.value }))}
+                  placeholder="Repeat new key"
+                  required
+                  autoComplete="new-password"
+                />
+              </label>
+              {keyError && <p className="error-text" style={{ marginTop: 8 }}>{keyError}</p>}
+              {keySuccess && <p className="success-text" style={{ marginTop: 8 }}>{keySuccess}</p>}
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={keyChanging}
+                style={{ marginTop: 16 }}
+              >
+                {keyChanging ? 'Saving…' : 'Update key'}
+              </button>
+            </fieldset>
+          </form>
+        </div>
       )}
     </section>
   )
