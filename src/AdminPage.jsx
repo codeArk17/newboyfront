@@ -488,17 +488,12 @@ const AdminPage = ({ onListingsChange }) => {
       {error && <p className="error-text admin-banner">{error}</p>}
       {success && <p className="success-text admin-banner">{success}</p>}
 
-      {loading && tab === 'overview' && <p className="meta">Loading dashboard…</p>}
+      {loading && tab === 'overview' && <p className="meta" style={{ padding: '28px 32px' }}>Loading dashboard…</p>}
 
       {tab === 'overview' && stats && !loading && (
-        <div className="admin-overview">
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              onClick={resetStats}
-              title="Clear the stats counters shown below"
-            >
+        <div className="admin-content admin-overview">
+          <div className="admin-overview-header">
+            <button type="button" className="btn btn-secondary btn-sm" onClick={resetStats} title="Clear the stats counters shown below">
               ↺ Reset stats
             </button>
           </div>
@@ -567,6 +562,7 @@ const AdminPage = ({ onListingsChange }) => {
       )}
 
       {tab === 'listings' && (
+        <div className="admin-content">
         <div className="admin-table-wrap">
           {loading ? (
             <p className="meta">Loading listings…</p>
@@ -608,14 +604,16 @@ const AdminPage = ({ onListingsChange }) => {
             </table>
           )}
           {!loading && listings.length === 0 && (
-            <p className="meta">No listings yet. Add your first property.</p>
+            <p className="meta" style={{ padding: '20px 24px' }}>No listings yet. Add your first property.</p>
           )}
+        </div>
         </div>
       )}
 
       {tab === 'payments' && (
+        <div className="admin-content">
         <div className="admin-table-wrap">
-          {paymentsLoading && <p className="meta">Loading payments from Paystack…</p>}
+          {paymentsLoading && <p className="meta" style={{ padding: '20px 24px' }}>Loading payments from Paystack…</p>}
           {paymentsError && <p className="error-text admin-banner">{paymentsError}</p>}
           {!paymentsLoading && !paymentsError && payments.length === 0 && (
             <p className="meta">No payments found on your Paystack account.</p>
@@ -736,9 +734,12 @@ const AdminPage = ({ onListingsChange }) => {
             </>
           )}
         </div>
+        </div>
       )}
 
-      {tab === 'add' && (        <form className="admin-form" onSubmit={handleSubmit} noValidate>
+      {tab === 'add' && (
+        <div className="admin-content">
+        <form className="admin-form" onSubmit={handleSubmit} noValidate>
 
           {/* ── Section: Basic info ── */}
           <fieldset className="admin-fieldset admin-fieldset--section">
@@ -986,12 +987,14 @@ const AdminPage = ({ onListingsChange }) => {
             )}
           </div>
         </form>
+        </div>
       )}
 
       {tab === 'settings' && (
-        <div style={{ maxWidth: 480 }}>
-          <h2 style={{ marginBottom: 4 }}>Settings</h2>
-          <p className="meta" style={{ marginBottom: 24 }}>Change your admin key. You'll need the new key next time you sign in.</p>
+        <div className="admin-content">
+        <div className="admin-settings-wrap">
+          <h2>Settings</h2>
+          <p className="meta">Change your admin key. You'll need the new key next time you sign in.</p>
 
           <form onSubmit={handleKeyChange} noValidate>
             <fieldset className="admin-fieldset admin-fieldset--section">
@@ -1030,6 +1033,7 @@ const AdminPage = ({ onListingsChange }) => {
               </button>
             </fieldset>
           </form>
+        </div>
         </div>
       )}
     </section>
